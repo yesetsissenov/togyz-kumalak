@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тоғыз құмалақ — казахская игра-стратегия</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%237a1f1f%22/><circle cx=%2235%22 cy=%2240%22 r=%2212%22 fill=%22%23f0c75e%22/><circle cx=%2265%22 cy=%2240%22 r=%2212%22 fill=%22%23f0c75e%22/><circle cx=%2250%22 cy=%2266%22 r=%2212%22 fill=%22%23f0c75e%22/></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ornament-band"></div>
+  <header>
+    <h1>ТОҒЫЗ ҚҰМАЛАҚ</h1>
+    <div class="subtitle">Казахская настольная стратегия · «алгебра чабанов»</div>
+  </header>
+
+  <div id="controls">
+    <span class="ctl-label">Сложность:</span>
+    <select id="level">
+      <option value="easy">Оңай · лёгкая</option>
+      <option value="medium" selected>Орташа · средняя</option>
+      <option value="hard">Қиын · сложная</option>
+    </select>
+    <span class="ctl-label">Первый ход:</span>
+    <select id="first">
+      <option value="0" selected>Вы (белые)</option>
+      <option value="1">Компьютер</option>
+    </select>
+    <button class="btn primary" id="new-game">Жаңа ойын ▶</button>
+    <button class="btn" id="rules-btn">Ережелер 📖</button>
+    <button class="btn" id="hint-btn">Подсказка 💡</button>
+    <button class="btn" id="undo-btn">Отменить ↩</button>
+  </div>
+
+  <div id="board">
+    <div class="row-label">
+      <span class="who"><span class="turn-dot" id="dot-ai"></span>Қарсылас · Компьютер</span>
+      <span id="ai-think"></span>
+    </div>
+    <div class="row" id="row-ai"></div>
+
+    <div id="kazans">
+      <div class="kazan" id="kazan-ai">
+        <div class="k-name">Қазан соперника</div>
+        <div class="k-bar"><div class="k-fill"></div><div class="k-goal" title="82 — победа"></div></div>
+        <div class="k-cnt"><span>0</span><small> /82</small></div>
+      </div>
+      <div class="kazan" id="kazan-me">
+        <div class="k-name">Ваш қазан</div>
+        <div class="k-bar"><div class="k-fill"></div><div class="k-goal" title="82 — победа"></div></div>
+        <div class="k-cnt"><span>0</span><small> /82</small></div>
+      </div>
+    </div>
+
+    <div class="row" id="row-me"></div>
+    <div class="row-label">
+      <span class="who"><span class="turn-dot" id="dot-me"></span>Сіз · Вы</span>
+      <span style="opacity:.6">ход против часовой стрелки →</span>
+    </div>
+  </div>
+
+  <div id="message"></div>
+
+  <div id="log-wrap">
+    <div id="log-title">Журнал партии</div>
+    <div id="log"></div>
+  </div>
+
+  <!-- ПРАВИЛА -->
+  <div id="rules-overlay" class="overlay hidden">
+    <div class="panel">
+      <h2>ЕРЕЖЕЛЕР · ПРАВИЛА</h2>
+      <p>Тоғыз құмалақ («девять камешков») — древняя казахская игра семейства манкала.
+      Её называют <i>«алгеброй чабанов»</i>: считать придётся много.</p>
+
+      <h3>Доска и цель</h3>
+      <ul>
+        <li>У каждого игрока 9 лунок (<span class="kk">отау</span>), в начале в каждой по 9 кумалаков — всего 162.</li>
+        <li>Захваченные кумалаки складываются в ваш <span class="kk">қазан</span>.</li>
+        <li><b>Цель — собрать 82 кумалака</b> (больше половины). Счёт 81:81 — ничья.</li>
+      </ul>
+
+      <h3>Ход</h3>
+      <ul>
+        <li>Берёте <b>все</b> кумалаки из любой <b>своей непустой</b> лунки.</li>
+        <li><b>Один оставляете в исходной лунке</b>, остальные раскладываете по одному
+            в следующие лунки <b>против часовой стрелки</b> (по своему ряду слева направо,
+            дальше — по ряду соперника).</li>
+        <li>Если в лунке был <b>всего один</b> кумалак — он просто переходит в следующую лунку.</li>
+        <li>Казаны в раскладке не участвуют.</li>
+      </ul>
+      <div class="rule-demo">Пример: в вашей 3-й лунке 5 кумалаков. Один остаётся, четыре лягут в 4-ю, 5-ю, 6-ю и 7-ю лунки.</div>
+
+      <h3>Захват (жұп — «чёт»)</h3>
+      <ul>
+        <li>Если <b>последний</b> кумалак попал в лунку <b>соперника</b> и кумалаков в ней стало
+            <b>чётное число</b> (2, 4, 6…) — вы забираете их все в свой казан.</li>
+        <li>В своём ряду захватов не бывает.</li>
+      </ul>
+      <div class="rule-demo">Пример: последний кумалак упал в лунку соперника, где было 9 → стало 10 → все 10 ваши.</div>
+
+      <h3>Тұздық — «священная лунка»</h3>
+      <ul>
+        <li>Если последний кумалак сделал в лунке соперника <b>ровно 3</b> — лунка становится вашим
+            <b>тұздық</b>: эти 3 кумалака и <b>каждый</b>, кто туда попадёт впредь, уходят в ваш казан.</li>
+        <li>Ограничения (соблюдаются строго):
+          <ul>
+            <li>только <b>один тұздық за партию</b> у каждого игрока;</li>
+            <li>нельзя объявить тұздық в <b>9-й лунке</b> соперника;</li>
+            <li>нельзя — в лунке, <b>симметричной</b> тұздық соперника (с тем же номером).</li>
+          </ul>
+        </li>
+        <li>Если условие «ровно 3» выполнилось, но лунка под запретом — кумалаки просто остаются в ней.</li>
+      </ul>
+
+      <h3>Конец игры</h3>
+      <ul>
+        <li><b>82+ в казане</b> — немедленная победа.</li>
+        <li><span class="kk">Атсырау</span>: если при своём ходе у игрока все лунки пусты — партия
+            останавливается, а все оставшиеся на доске кумалаки забирает соперник. Побеждает тот,
+            у кого казан больше.</li>
+      </ul>
+
+      <h3>Подсказки интерфейса</h3>
+      <ul>
+        <li>Золотая подсветка — лунки, из которых можно ходить.</li>
+        <li>⭐ с пунктиром — тұздық (зелёный — ваш, красный — соперника).</li>
+        <li>Кнопка 💡 покажет ход, который выбрал бы сильный ИИ.</li>
+        <li>Каждый захват объясняется в журнале под доской.</li>
+      </ul>
+
+      <div class="center"><button class="btn primary" id="rules-close">Түсінікті! Понятно</button></div>
+    </div>
+  </div>
+
+  <!-- РЕЗУЛЬТАТ -->
+  <div id="result-overlay" class="overlay hidden">
+    <div class="panel">
+      <h2 id="result-title"></h2>
+      <div id="result-stats"></div>
+      <div class="center">
+        <button class="btn primary" id="result-again">Қайта ойнау ↻</button>
+        <button class="btn" id="result-close">Посмотреть доску</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="game.js"></script>
+</body>
+</html>
